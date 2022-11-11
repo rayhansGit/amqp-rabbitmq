@@ -1,0 +1,59 @@
+version: '3.7'
+services:
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    #container_name: rabbitmq
+    
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 25s
+      timeout: 10s
+      retries: 2
+    networks:
+      - amqpnetwork
+  obse:
+    build: /OBSE/
+    volumes:
+      - "shared-volume:/usr/src/app"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - amqpnetwork
+  imed:
+    build: /IMED/
+    depends_on:
+      - obse
+    networks:
+      - amqpnetwork
+  orig:
+    build: /ORIG/
+    depends_on:
+      - imed
+    networks:
+      - amqpnetwork
+
+  
+  
+  http:
+    build: /HTTPSERV/
+    ports:
+      - 8080:3000
+    expose:
+      - 8080
+    volumes:
+      - "shared-volume:/usr/src/app"
+    depends_on:
+      - obse
+    networks:
+      - amqpnetwork
+volumes:
+  shared-volume:
+
+
+networks:
+  amqpnetwork:
+    driver: bridge
+  
+
+
