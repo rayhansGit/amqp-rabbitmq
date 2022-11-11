@@ -5,11 +5,18 @@ const fs = require('fs');
 const PORT = 3000;
 
 // App
+let readData = "";
 const app = express();
 app.get('/', (req, res) => {
+  
   fs.readFile('/usr/src/app/msg.txt', 'utf8', function (err, data) {
-    console.log(data);
+    res.format({
+      'text/plain': function () {
+        res.send(data);
+      }
+    });
   });
+  
 });
 
 app.listen(PORT);
